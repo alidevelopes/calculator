@@ -4,6 +4,7 @@ const ADDITION_SIGN = "+";
 const DIVISION_SIGN = "÷";
 const SUBTRACTION_SIGN = "−";
 const MULTIPLICATION_SIGN = "×";
+const PERCENTAGE_SIGN = "%";
 const PREFIX_SIGN = "+/-";
 const PI_SIGN = "π";
 const PI_VALUE = 3.1415;
@@ -26,8 +27,14 @@ buttons.forEach((button) => button.addEventListener("click", clickHandler));
 function clickHandler(e) {
   userInput = e.target.innerText;
   if (userInput === "AC") return resetAll();
-  if (userInput === PREFIX_SIGN) setPrefix();
-  if (isOperator(userInput) && userInput !== PREFIX_SIGN) {
+  else if (userInput === PREFIX_SIGN) setPrefix();
+  else if (userInput === PERCENTAGE_SIGN) getPercentage();
+
+  if (
+    isOperator(userInput) &&
+    userInput !== PREFIX_SIGN &&
+    userInput !== PERCENTAGE_SIGN
+  ) {
     if (
       firstNumHasValue() &&
       currentOperatorHasValue() &&
@@ -74,7 +81,8 @@ function isOperator(input) {
     input === SUBTRACTION_SIGN ||
     input === MULTIPLICATION_SIGN ||
     input === DIVISION_SIGN ||
-    input === PREFIX_SIGN
+    input === PREFIX_SIGN ||
+    input == PERCENTAGE_SIGN
   )
     return true;
 }
@@ -88,6 +96,40 @@ function setPrefix() {
     secondNumPrefix *= -1;
 }
 
+function getPercentage() {
+  if (firstNumHasValue() && !secondNumHasValue()) {
+    if (!currentOperatorHasValue()) {
+      percentResult = firstNum / 100;
+      return percentResult;
+    } else if (
+      currentOperator === ADDITION_SIGN ||
+      currentOperator === SUBTRACTION_SIGN
+    ) {
+      secondNum = (firstNum * firstNum) / 100;
+    } else if (
+      currentOperator === MULTIPLICATION_SIGN ||
+      currentOperator === DIVISION_SIGN
+    ) {
+      secondNum = firstNum / 100;
+    }
+  } else if (firstNumHasValue() && secondNumHasValue()) {
+    if (
+      currentOperator === ADDITION_SIGN ||
+      currentOperator === SUBTRACTION_SIGN
+    ) {
+      secondNum = (firstNum * secondNum) / 100;
+    } else if (
+      currentOperator === MULTIPLICATION_SIGN ||
+      currentOperator === DIVISION_SIGN
+    ) {
+      secondNum = secondNum / 100;
+    }
+  }
+  operations.a = firstNum;
+  operations.b = secondNum;
+  percentResult = decideOperation();
+  alert(percentResult);
+}
 // check if firstNum, secondNum and operator has (input) value
 function firstNumHasValue() {
   if (firstNum === "") return false;
