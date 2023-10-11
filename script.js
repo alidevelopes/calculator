@@ -1,19 +1,19 @@
 // Symbols
-const EQUAL_SIGN = "=";
 const ADDITION_SIGN = "+";
 const DIVISION_SIGN = "÷";
 const SUBTRACTION_SIGN = "−";
 const MULTIPLICATION_SIGN = "×";
-const PERCENTAGE_SIGN = "%";
-const PREFIX_SIGN = "+/-";
-const PI_SIGN = "π";
-const PI_VALUE = 3.1415;
 
+const EQUAL_SIGN = "=";
+const PREFIX_SIGN = "+/-";
+const PERCENTAGE_SIGN = "%";
+
+let showPrefix1 = "";
+let showPrefix2 = "";
 let result = 0;
 let firstNum = "";
 let secondNum = "";
 let suffixSign = "";
-let showResult = false;
 let firstNumPrefix = 1;
 let secondNumPrefix = 1;
 let currentOperator = "";
@@ -27,8 +27,27 @@ buttons.forEach((button) => button.addEventListener("click", clickHandler));
 function clickHandler(e) {
   userInput = e.target.innerText;
   if (userInput === "AC") return resetAll();
-  else if (userInput === PREFIX_SIGN) setPrefix();
-  else if (userInput === PERCENTAGE_SIGN) getPercentage();
+  else if (userInput === PREFIX_SIGN) return (result = setPrefix());
+  else if (userInput === PERCENTAGE_SIGN) {
+    result = getPercentage();
+    resultOnScreen.innerText = result;
+    operationLog.innerText = `${showPrefix1 + firstNum} ${currentOperator} ${
+      showPrefix2 + secondNum
+    }`;
+    return;
+  }
+
+  if (userInput === EQUAL_SIGN) {
+    if (!secondNumHasValue()) return;
+    result = decideOperation();
+    operationLog.innerText = `${showPrefix1 + firstNum} ${currentOperator} ${
+      showPrefix2 + secondNum
+    } =`;
+    firstNum = result;
+    currentOperator = suffixSign;
+    secondNum = "";
+    return (resultOnScreen.innerText = result);
+  }
 
   if (
     isOperator(userInput) &&
@@ -52,6 +71,7 @@ function clickHandler(e) {
       firstNumPrefix *= -1;
     }
   } else if (!isOperator(userInput)) {
+    if (userInput === ".") return dotControler();
     if (firstNumHasValue()) {
       if (currentOperatorHasValue()) {
         secondNum += userInput;
@@ -66,12 +86,16 @@ function clickHandler(e) {
     }
   }
 
-  operations.prefixNum1 = firstNumPrefix;
-  operations.prefixNum2 = secondNumPrefix;
   operations.a = firstNum;
   operations.b = secondNum;
+  operations.prefixNum1 = firstNumPrefix;
+  operations.prefixNum2 = secondNumPrefix;
+  if (firstNumPrefix === -1) showPrefix1 = "-";
+  if (secondNumPrefix === -1) showPrefix2 = "-";
   resultOnScreen.innerText = currentNumOnDisplay;
-  operationLog.innerText = `${firstNum} ${currentOperator} ${secondNum}`;
+  operationLog.innerText = `${showPrefix1 + firstNum} ${currentOperator} ${
+    showPrefix2 + secondNum
+  }`;
 }
 
 // check if input is an arithmetic operator or not
@@ -86,9 +110,30 @@ function isOperator(input) {
   )
     return true;
 }
-
 // ---
-
+function dotControler() {
+  if (!firstNumHasValue() && firstNum.includes(".") === false) {
+    firstNum += "0" + userInput;
+  } else if (
+    firstNumHasValue() &&
+    !currentOperatorHasValue() &&
+    firstNum.includes(".") === false
+  ) {
+    firstNum += userInput;
+  } else if (
+    firstNumHasValue() &&
+    currentOperatorHasValue() &&
+    secondNum.includes(".") === false
+  ) {
+    if (!secondNumHasValue()) {
+      secondNum += "0";
+    }
+    if (secondNumHasValue()) {
+      secondNum += userInput;
+    }
+  }
+}
+// ---
 function setPrefix() {
   if (!firstNumHasValue() || (firstNumHasValue() && !currentOperatorHasValue()))
     firstNumPrefix *= -1;
@@ -97,54 +142,43 @@ function setPrefix() {
 }
 
 function getPercentage() {
-  if (firstNumHasValue() && !secondNumHasValue()) {
-    if (!currentOperatorHasValue()) {
-      percentResult = firstNum / 100;
-      return percentResult;
-    } else if (
-      currentOperator === ADDITION_SIGN ||
-      currentOperator === SUBTRACTION_SIGN
-    ) {
-      secondNum = (firstNum * firstNum) / 100;
-    } else if (
-      currentOperator === MULTIPLICATION_SIGN ||
-      currentOperator === DIVISION_SIGN
-    ) {
-      secondNum = firstNum / 100;
-    }
-  } else if (firstNumHasValue() && secondNumHasValue()) {
+  let percentResult;
+  if (firstNumHasValue() && !currentOperatorHasValue()) {
+    percentResult = firstNum / 100;
+    result = percentResult;
+    // alert(percentResult);
+    // return percentResult;
+  } else if (firstNumHasValue() && currentOperatorHasValue()) {
     if (
       currentOperator === ADDITION_SIGN ||
       currentOperator === SUBTRACTION_SIGN
     ) {
-      secondNum = (firstNum * secondNum) / 100;
+      if (!secondNumHasValue()) {
+        secondNum = (firstNum * firstNum) / 100;
+      } else if (secondNumHasValue()) {
+        secondNum = (firstNum * secondNum) / 100;
+      }
     } else if (
       currentOperator === MULTIPLICATION_SIGN ||
       currentOperator === DIVISION_SIGN
     ) {
-      secondNum = secondNum / 100;
+      if (!secondNumHasValue()) {
+        secondNum = firstNum / 100;
+      } else if (secondNumHasValue()) {
+        secondNum = secondNum / 100;
+      }
     }
+    operations.a = firstNum;
+    operations.b = secondNum;
+    percentResult = decideOperation();
   }
-  operations.a = firstNum;
-  operations.b = secondNum;
-  percentResult = decideOperation();
   alert(percentResult);
+  return percentResult;
 }
-// check if firstNum, secondNum and operator has (input) value
-function firstNumHasValue() {
-  if (firstNum === "") return false;
-  else return true;
-}
-
-function secondNumHasValue() {
-  if (secondNum === "") return false;
-  else return true;
-}
-
-function currentOperatorHasValue() {
-  if (currentOperator === "") return false;
-  else return true;
-}
+// check if firstNum, secondNum and operator has value
+let firstNumHasValue = () => firstNum !== "";
+let secondNumHasValue = () => secondNum !== "";
+let currentOperatorHasValue = () => currentOperator !== "";
 
 // -----
 let operations = {
@@ -169,7 +203,7 @@ let operations = {
     );
   },
   divide() {
-    if (parseFloat(this.b) === 0) return "Error";
+    if (parseFloat(this.b) === 0) return displayErrorMsg();
     else if (parseFloat(this.b) !== 0) {
       return (
         (parseFloat(this.a * this.prefixNum1) / parseFloat(this.b)) *
@@ -189,17 +223,25 @@ function decideOperation() {
   else if (currentOperator === EQUAL_SIGN) alert("equal clicked");
 }
 
+const errorScreen = document.querySelector("#result");
+function displayErrorMsg() {
+  errorMsg = "Error: division by zero!";
+  errorScreen.classList.add("screen-error-msg");
+  return errorMsg;
+}
+
 function resetAll() {
   result = 0;
   firstNum = "";
   secondNum = "";
-  allInputs = [];
   suffixSign = "";
-  showResult = false;
+  showPrefix1 = "";
+  showPrefix2 = "";
   firstNumPrefix = 1;
   secondNumPrefix = 1;
   currentOperator = "";
   currentNumOnDisplay = "";
-  operationLog.innerText = "";
+  operationLog.innerText = "0";
   resultOnScreen.innerText = 0;
+  errorScreen.classList.remove("screen-error-msg");
 }
