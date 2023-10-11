@@ -4,6 +4,7 @@ const DIVISION_SIGN = "÷";
 const SUBTRACTION_SIGN = "−";
 const MULTIPLICATION_SIGN = "×";
 
+const DELETE_BTN = "del";
 const EQUAL_SIGN = "=";
 const PREFIX_SIGN = "+/-";
 const PERCENTAGE_SIGN = "%";
@@ -30,13 +31,13 @@ function clickHandler(e) {
   else if (userInput === PREFIX_SIGN) return (result = setPrefix());
   else if (userInput === PERCENTAGE_SIGN) {
     result = getPercentage();
-    resultOnScreen.innerText = result;
+    firstNum = result;
+    resultOnScreen.innerText = firstNum;
     operationLog.innerText = `${showPrefix1 + firstNum} ${currentOperator} ${
       showPrefix2 + secondNum
     }`;
     return;
   }
-
   if (userInput === EQUAL_SIGN) {
     if (!secondNumHasValue()) return;
     result = decideOperation();
@@ -47,6 +48,14 @@ function clickHandler(e) {
     currentOperator = suffixSign;
     secondNum = "";
     return (resultOnScreen.innerText = result);
+  }
+  if (userInput === DELETE_BTN) {
+    removeChar();
+    resultOnScreen.innerText = currentNumOnDisplay;
+    operationLog.innerText = `${showPrefix1 + firstNum} ${currentOperator} ${
+      showPrefix2 + secondNum
+    }`;
+    return;
   }
 
   if (
@@ -85,7 +94,6 @@ function clickHandler(e) {
       currentNumOnDisplay = firstNum;
     }
   }
-
   operations.a = firstNum;
   operations.b = secondNum;
   operations.prefixNum1 = firstNumPrefix;
@@ -96,6 +104,23 @@ function clickHandler(e) {
   operationLog.innerText = `${showPrefix1 + firstNum} ${currentOperator} ${
     showPrefix2 + secondNum
   }`;
+}
+
+// --
+let slicedNum1;
+let slicedNum2;
+function removeChar() {
+  if (secondNumHasValue()) {
+    slicedNum2 = secondNum.slice(0, secondNum.length - 1);
+    secondNum = slicedNum2;
+  } else if (currentOperatorHasValue()) {
+    currentOperator = "";
+  } else if (firstNumHasValue()) {
+    slicedNum1 = firstNum.slice(0, firstNum.length - 1);
+    firstNum = slicedNum1;
+  }
+  operations.a = firstNum;
+  operations.b = secondNum;
 }
 
 // check if input is an arithmetic operator or not
