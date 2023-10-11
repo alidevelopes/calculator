@@ -172,7 +172,6 @@ function getPercentage() {
     operations.b = secondNum;
     percentResult = decideOperation();
   }
-  alert(percentResult);
   return percentResult;
 }
 // check if firstNum, secondNum and operator has value
