@@ -4,17 +4,17 @@ const DIVISION_SIGN = "÷";
 const SUBTRACTION_SIGN = "−";
 const MULTIPLICATION_SIGN = "×";
 
-const DELETE_BTN = "del";
 const EQUAL_SIGN = "=";
+const DELETE_BTN = "del";
 const PREFIX_SIGN = "+/-";
 const PERCENTAGE_SIGN = "%";
 
-let showPrefix1 = "";
-let showPrefix2 = "";
 let result = 0;
 let firstNum = "";
 let secondNum = "";
 let suffixSign = "";
+let showPrefix1 = "";
+let showPrefix2 = "";
 let firstNumPrefix = 1;
 let secondNumPrefix = 1;
 let currentOperator = "";
@@ -32,10 +32,10 @@ function clickHandler(e) {
   else if (userInput === PERCENTAGE_SIGN) {
     result = getPercentage();
     firstNum = result;
-    resultOnScreen.innerText = firstNum;
-    operationLog.innerText = `${showPrefix1 + firstNum} ${currentOperator} ${
-      showPrefix2 + secondNum
-    }`;
+    resultOnScreen.innerText = showPrefix1 + firstNum;
+    operationLog.innerText = `${
+      showPrefix1 + firstNum - secondNum
+    } ${currentOperator} ${showPrefix2 + secondNum}`;
     return;
   }
   if (userInput === EQUAL_SIGN) {
@@ -51,11 +51,7 @@ function clickHandler(e) {
   }
   if (userInput === DELETE_BTN) {
     removeChar();
-    resultOnScreen.innerText = currentNumOnDisplay;
-    operationLog.innerText = `${showPrefix1 + firstNum} ${currentOperator} ${
-      showPrefix2 + secondNum
-    }`;
-    return;
+    return updateResultOnScreen();
   }
 
   if (
@@ -70,12 +66,13 @@ function clickHandler(e) {
     ) {
       suffixSign = userInput;
       result = decideOperation();
-      operationLog.innerText = `${firstNum} ${currentOperator} ${secondNum} =`;
+      operationLog.innerText = `${firstNum} ${currentOperator} ${secondNum} = ${result} ${suffixSign}`;
       firstNum = result;
       currentOperator = suffixSign;
       secondNum = "";
       return (resultOnScreen.innerText = result);
     } else if (firstNumHasValue()) currentOperator = userInput;
+    else if (!firstNumHasValue() && userInput !== SUBTRACTION_SIGN) return "0";
     else if (!firstNumHasValue() && userInput === SUBTRACTION_SIGN) {
       firstNumPrefix *= -1;
     }
@@ -94,30 +91,36 @@ function clickHandler(e) {
       currentNumOnDisplay = firstNum;
     }
   }
+  updateResultOnScreen();
   operations.a = firstNum;
   operations.b = secondNum;
   operations.prefixNum1 = firstNumPrefix;
   operations.prefixNum2 = secondNumPrefix;
   if (firstNumPrefix === -1) showPrefix1 = "-";
   if (secondNumPrefix === -1) showPrefix2 = "-";
-  resultOnScreen.innerText = currentNumOnDisplay;
   operationLog.innerText = `${showPrefix1 + firstNum} ${currentOperator} ${
     showPrefix2 + secondNum
   }`;
 }
 
 // --
-let slicedNum1;
-let slicedNum2;
+function updateResultOnScreen() {
+  if (firstNumHasValue() && currentOperatorHasValue() && secondNumHasValue()) {
+    resultOnScreen.innerText = `${showPrefix2 + secondNum}`;
+  } else if (firstNumHasValue()) {
+    resultOnScreen.innerText = `${showPrefix1 + firstNum}`;
+  }
+  operationLog.innerText = `${showPrefix1 + firstNum} ${currentOperator} ${
+    showPrefix2 + secondNum
+  }`;
+}
+// -- upon click of "del" button, remove the latest input (num/operator)
 function removeChar() {
   if (secondNumHasValue()) {
-    slicedNum2 = secondNum.slice(0, secondNum.length - 1);
-    secondNum = slicedNum2;
-  } else if (currentOperatorHasValue()) {
-    currentOperator = "";
-  } else if (firstNumHasValue()) {
-    slicedNum1 = firstNum.slice(0, firstNum.length - 1);
-    firstNum = slicedNum1;
+    secondNum = secondNum.slice(0, secondNum.length - 1);
+  } else if (currentOperatorHasValue()) currentOperator = "";
+  else if (firstNumHasValue()) {
+    firstNum = firstNum.slice(0, firstNum.length - 1);
   }
   operations.a = firstNum;
   operations.b = secondNum;
@@ -135,7 +138,7 @@ function isOperator(input) {
   )
     return true;
 }
-// ---
+// --- not allowing user to input more than one dot (decimal point)
 function dotControler() {
   if (!firstNumHasValue() && firstNum.includes(".") === false) {
     firstNum += "0" + userInput;
@@ -158,7 +161,7 @@ function dotControler() {
     }
   }
 }
-// ---
+// --- upon click of "+/-" button, user can change a number from positive to a negative number, and vice versa
 function setPrefix() {
   if (!firstNumHasValue() || (firstNumHasValue() && !currentOperatorHasValue()))
     firstNumPrefix *= -1;
@@ -166,13 +169,13 @@ function setPrefix() {
     secondNumPrefix *= -1;
 }
 
+// "%" take percentage of a given number(s),
 function getPercentage() {
   let percentResult;
+  if (!firstNumHasValue()) return "0";
   if (firstNumHasValue() && !currentOperatorHasValue()) {
     percentResult = firstNum / 100;
-    result = percentResult;
-    // alert(percentResult);
-    // return percentResult;
+    // result = percentResult;
   } else if (firstNumHasValue() && currentOperatorHasValue()) {
     if (
       currentOperator === ADDITION_SIGN ||
@@ -247,9 +250,10 @@ function decideOperation() {
   else if (currentOperator === EQUAL_SIGN) alert("equal clicked");
 }
 
+// display error msg, so user knows why can't divide by zero
 const errorScreen = document.querySelector("#result");
 function displayErrorMsg() {
-  errorMsg = "Error: division by zero!";
+  errorMsg = "Error: division by zero!\nPress 'AC'";
   errorScreen.classList.add("screen-error-msg");
   return errorMsg;
 }
